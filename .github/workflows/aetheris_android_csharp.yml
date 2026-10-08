@@ -1,0 +1,117 @@
+name: Aetheris Android C# Mono
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'modules/mono/**'
+      - 'platform/android/**'
+      - 'SConstruct'
+      - 'methods.py'
+      - '.github/actions/godot-build/**'
+      - '.github/workflows/aetheris_android_csharp.yml'
+  workflow_dispatch:
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  SCONS_FLAGS: >-
+    dev_mode=yes
+    module_text_server_fb_enabled=yes
+    arch=arm64
+    module_mono_enabled=yes
+
+jobs:
+  android-csharp:
+    name: Aetheris Android C# / Mono arm64
+    runs-on: ubuntu-26.04
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.100
+
+      - name: Setup Python and SCons
+        uses: ./.github/actions/godot-deps
+
+      - name: Download Swappy
+        shell: sh
+        id: swappy
+        run: |
+          if python ./misc/scripts/install_swappy_android.py; then
+            echo "SWAPPY_ENABLED=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Swappy SDK installation failed; continuing without Swappy."
+            echo "SWAPPY_ENABLED=no" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download Perfetto
+        shell: sh
+        id: perfetto
+        run: |
+          if python ./misc/scripts/install_perfetto.py; then
+            echo "PROFILER_ENABLED=perfetto" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Perfetto installation failed; continuing without Perfetto."
+            echo "PROFILER_ENABLED=none" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build Aetheris Android Mono template
+        uses: ./.github/actions/godot-build
+        with:
+          platform: android
+          target: template_debug
+          scons-flags: >-
+            ${{ env.SCONS_FLAGS }}
+            swappy=${{ steps.swappy.outputs.SWAPPY_ENABLED }}
+            profiler=${{ steps.perfetto.outputs.PROFILER_ENABLED }}
+
+      - name: Generate C# glue
+        run: |
+          ./bin/godot.android.template_debug.arm64.mono \
+            --headless \
+            --generate-mono-glue \
+            ./modules/mono/glue
+
+      - name: Build Godot C# / .NET assemblies
+        run: |
+          dotnet --info
+          ./modules/mono/build_scripts/build_assemblies.py \
+            --godot-output-dir=./bin \
+            --godot-platform=android \
+            --werror
+
+      - name: Build Android Mono APK
+        working-directory: platform/android/java
+        run: |
+          ./gradlew generateGodotMonoTemplates --stacktrace --info
+
+      - name: Verify APK
+        run: |
+          test -s bin/android_monoDebug.apk
+          unzip -t bin/android_monoDebug.apk >/dev/null
+          unzip -l bin/android_monoDebug.apk | grep -E 'lib/arm64-v8a/.*\.so'
+          echo "APK:"
+          ls -lh bin/android_monoDebug.apk
+
+      - name: Upload Aetheris Android C# APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Aetheris-Engine-Android-CSharp-arm64
+          path: bin/android_monoDebug.apk
+          if-no-files-found: error
+          retention-days: 14
