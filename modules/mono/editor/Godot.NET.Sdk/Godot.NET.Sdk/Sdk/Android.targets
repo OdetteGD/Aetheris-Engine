@@ -1,0 +1,15 @@
+<Project>
+  <!-- Android C# uses the .NET Android toolchain/MSBuild. The native Mono/SGen
+       runtime is packaged by the Godot Android Mono Gradle flavor; MSBuild only
+       compiles and publishes the managed assemblies. -->
+  <PropertyGroup Condition=" '$(GodotTargetPlatform)' == 'android' ">
+    <AndroidSupported>true</AndroidSupported>
+    <AndroidUseMonoRuntime Condition=" '$(AndroidUseMonoRuntime)' == '' ">true</AndroidUseMonoRuntime>
+    <AndroidPackageFormat Condition=" '$(AndroidPackageFormat)' == '' ">apk</AndroidPackageFormat>
+  </PropertyGroup>
+
+  <Target Name="GodotAndroidCSharpBuildInfo" BeforeTargets="CoreCompile" Condition=" '$(GodotTargetPlatform)' == 'android' ">
+    <Message Importance="high"
+             Text="Aetheris Android C#: Roslyn/MSBuild; runtime=Mono/SGen; RID=$(RuntimeIdentifier); arch=$(GodotAndroidArchitecture)" />
+  </Target>
+</Project>
