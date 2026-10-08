@@ -1,7 +1,9 @@
 name: Aetheris Android C# Editor
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Aetheris Mono Glue Bootstrap"]
+    types: [completed]
     branches: [master]
   workflow_dispatch:
 
