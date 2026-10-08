@@ -27,6 +27,13 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.100
+          cache: true
+
+      - name: Restore Godot build cache
+        uses: ./.github/actions/godot-cache-restore
+        with:
+          cache-name: android-editor-mono
+        continue-on-error: true
 
       - name: Setup Python and SCons
         uses: ./.github/actions/godot-deps
@@ -55,6 +62,25 @@ jobs:
             profiler=perfetto
             swappy=yes
 
+      - name: Build temporary Linux Mono editor for C# glue generation
+        shell: sh
+        run: |
+          scons platform=linuxbsd target=editor             dev_mode=yes             module_text_server_fb_enabled=yes             module_mono_enabled=yes             production=yes             cache_path=.scons_cache             redirect_build_objects=no
+
+      - name: Generate C# Mono glue for the editor API
+        shell: sh
+        run: |
+          test -x bin/godot.linuxbsd.editor.x86_64
+          ./bin/godot.linuxbsd.editor.x86_64 --headless --generate-mono-glue modules/mono/glue
+          test -s modules/mono/glue/GodotSharp/GodotSharp/Generated/GeneratedIncludes.props
+          test -s modules/mono/glue/GodotSharp/GodotSharpEditor/Generated/GeneratedIncludes.props
+
+      - name: Save Godot build cache after native builds
+        uses: ./.github/actions/godot-cache-save
+        with:
+          cache-name: android-editor-mono
+        continue-on-error: true
+
       - name: Install .NET for Android workload
         run: |
           dotnet workload install android --skip-manifest-update
@@ -63,11 +89,7 @@ jobs:
       - name: Build Godot C# assemblies for Android
         run: |
           dotnet --info
-          ./modules/mono/build_scripts/build_assemblies.py \
-            --godot-output-dir=./bin \
-            --godot-platform=android \
-            --android-architecture=arm64 \
-            --werror
+          ./modules/mono/build_scripts/build_assemblies.py             --godot-output-dir=./bin             --godot-platform=android             --android-architecture=arm64             --werror
 
       - name: Generate Android C# editor APK
         run: |
@@ -78,7 +100,7 @@ jobs:
       - name: Verify Android C# editor APK
         run: |
           test -s bin/android_editor_builds/android_editor-android-debug.apk
-          unzip -l bin/android_editor_builds/android_editor-android-debug.apk | grep -E 'lib/arm64-v8a/.*\\.so'
+          unzip -l bin/android_editor_builds/android_editor-android-debug.apk | grep -E 'lib/arm64-v8a/.*\.so'
           unzip -l bin/android_editor_builds/android_editor-android-debug.apk | grep -E 'godotsharp|GodotSharp|libmono|libcoreclr|libdotnet' || true
 
       - name: Upload Aetheris Android C# editor
