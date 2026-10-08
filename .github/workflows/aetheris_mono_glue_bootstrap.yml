@@ -30,21 +30,12 @@ jobs:
             modules/mono/glue/GodotSharp/GodotSharp/Generated
             modules/mono/glue/GodotSharp/GodotSharpEditor/Generated
           key: aetheris-mono-glue-${{ hashFiles('core/**/*.h', 'core/**/*.cpp', 'modules/**/*.h', 'modules/**/*.cpp', 'modules/**/*.hpp', 'modules/**/*.inc') }}
-          restore-keys: |
-            aetheris-mono-glue-
 
       - name: Stop if glue cache already exists
         if: steps.glue-cache.outputs.cache-hit == 'true'
         run: |
           test -s modules/mono/glue/GodotSharp/GodotSharp/Generated/GeneratedIncludes.props
           test -s modules/mono/glue/GodotSharp/GodotSharpEditor/Generated/GeneratedIncludes.props
-
-      - name: Save host generator build cache
-        if: steps.glue-cache.outputs.cache-hit != 'true'
-        uses: ./.github/actions/godot-cache-save
-        with:
-          cache-name: android-editor-mono
-        continue-on-error: true
 
       - name: Restore Godot build cache
         uses: ./.github/actions/godot-cache-restore
@@ -60,7 +51,13 @@ jobs:
         if: steps.glue-cache.outputs.cache-hit != 'true'
         shell: sh
         run: |
-          scons platform=linuxbsd target=editor             module_text_server_fb_enabled=yes             module_mono_enabled=yes             production=yes             cache_path=.scons_cache             redirect_build_objects=no
+          scons platform=linuxbsd target=editor \
+            module_text_server_fb_enabled=yes \
+            module_mono_enabled=yes \
+            module_raycast_enabled=no \
+            production=yes \
+            cache_path=.scons_cache \
+            redirect_build_objects=no
 
       - name: Generate platform-neutral C# API glue
         if: steps.glue-cache.outputs.cache-hit != 'true'
@@ -70,6 +67,13 @@ jobs:
           ./bin/godot.linuxbsd.editor.x86_64 --headless --generate-mono-glue modules/mono/glue
           test -s modules/mono/glue/GodotSharp/GodotSharp/Generated/GeneratedIncludes.props
           test -s modules/mono/glue/GodotSharp/GodotSharpEditor/Generated/GeneratedIncludes.props
+
+      - name: Save host generator build cache
+        if: steps.glue-cache.outputs.cache-hit != 'true'
+        uses: ./.github/actions/godot-cache-save
+        with:
+          cache-name: android-editor-mono
+        continue-on-error: true
 
       - name: Save shared Mono glue cache
         if: steps.glue-cache.outputs.cache-hit != 'true'
