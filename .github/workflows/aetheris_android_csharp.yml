@@ -80,13 +80,6 @@ jobs:
             swappy=${{ steps.swappy.outputs.SWAPPY_ENABLED }}
             profiler=${{ steps.perfetto.outputs.PROFILER_ENABLED }}
 
-      - name: Generate C# glue
-        run: |
-          ./bin/godot.android.template_debug.arm64.mono \
-            --headless \
-            --generate-mono-glue \
-            ./modules/mono/glue
-
       - name: Build Godot C# / .NET assemblies
         run: |
           dotnet --info
