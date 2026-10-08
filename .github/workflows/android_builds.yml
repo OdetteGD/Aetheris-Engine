@@ -22,13 +22,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Editor (target=editor)
-            cache-name: android-editor
+          - name: Aetheris C# Mono Android Editor (target=editor)
+            cache-name: android-editor-mono
             target: editor
-            instrumented_tests: true
+            instrumented_tests: false
+            build-mono: true
             scons-flags: >-
               arch=arm64
               production=yes
+              module_mono_enabled=yes
 
           - name: Template arm32 (target=template_debug, arch=arm32)
             cache-name: android-template-arm32
@@ -145,6 +147,12 @@ jobs:
           ./gradlew generateGodotTemplates
           cd ../../..
           ls -l bin/
+
+      - name: Generate Godot C# assemblies
+        if: matrix.build-mono
+        run: |
+          dotnet --info
+          ./modules/mono/build_scripts/build_assemblies.py --godot-output-dir=./bin --godot-platform=android --android-architecture=arm64 --werror
 
       - name: Generate Godot editor
         if: matrix.target == 'editor'
