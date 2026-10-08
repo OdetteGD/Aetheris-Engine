@@ -477,7 +477,14 @@ def main():
     msbuild_tool = find_any_msbuild_tool(args.mono_prefix)
 
     if msbuild_tool is None:
-        print("Unable to find MSBuild")
+        print("Unable to find MSBuild or dotnet CLI.")
+        sys.exit(1)
+
+    # Android C# must use the .NET SDK/MSBuild toolchain. Mono's legacy MSBuild
+    # fallback is intentionally rejected here; Mono/SGen is the runtime/GC,
+    # while Roslyn (csc) is the C# compiler.
+    if args.godot_platform == "android" and not msbuild_tool.dotnet_cli:
+        print("Android C# requires the dotnet CLI/MSBuild toolchain.")
         sys.exit(1)
 
     exit_code = build_all(
