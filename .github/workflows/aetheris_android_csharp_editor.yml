@@ -70,7 +70,7 @@ jobs:
           path: |
             modules/mono/glue/GodotSharp/GodotSharp/Generated
             modules/mono/glue/GodotSharp/GodotSharpEditor/Generated
-          key: aetheris-mono-glue-${{ hashFiles('core/**/*.h', 'core/**/*.cpp', 'modules/**/*.h', 'modules/**/*.cpp', 'modules/**/*.hpp', 'modules/**/*.inc') }}
+          key: aetheris-mono-glue-${{ hashFiles('core/**/*.h', 'core/**/*.cpp', 'modules/**/*.h', 'modules/**/*.cpp', 'modules/**/*.hpp', 'modules/**/*.inc', '!modules/mono/glue/**') }}
           fail-on-cache-miss: true
 
       - name: Validate generated Mono glue
