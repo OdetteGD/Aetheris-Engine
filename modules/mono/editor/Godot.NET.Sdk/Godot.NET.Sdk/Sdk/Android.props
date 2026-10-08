@@ -1,14 +1,20 @@
 <Project>
-  <!-- Android C# projects use the Mono runtime by default. The export pipeline
-       supplies the exact architecture-specific RID. -->
-  <PropertyGroup>
+  <!-- Android C# is compiled by Roslyn through dotnet/MSBuild. Mono/SGen is the
+       managed runtime/GC used by the Mono edition; it is not the C# compiler. -->
+  <PropertyGroup Condition=" '$(GodotTargetPlatform)' == 'android' ">
+    <GodotAndroid>true</GodotAndroid>
+    <GodotAndroidArchitecture Condition=" '$(GodotAndroidArchitecture)' == '' ">arm64</GodotAndroidArchitecture>
     <UseMonoRuntime Condition=" '$(UseMonoRuntime)' == '' and '$(PublishAot)' != 'true' ">true</UseMonoRuntime>
+    <AndroidUseSharedRuntime Condition=" '$(AndroidUseSharedRuntime)' == '' ">false</AndroidUseSharedRuntime>
 
-    <!-- Command-line Android C# builds can select an architecture without
-         replacing an explicit RuntimeIdentifier supplied by the exporter. -->
+    <!-- Keep the runtime pack architecture explicit for Android C# publish/export.
+         An explicitly supplied RuntimeIdentifier always wins. -->
     <RuntimeIdentifier Condition=" '$(RuntimeIdentifier)' == '' and '$(GodotAndroidArchitecture)' == 'arm64' ">android-arm64</RuntimeIdentifier>
     <RuntimeIdentifier Condition=" '$(RuntimeIdentifier)' == '' and '$(GodotAndroidArchitecture)' == 'arm32' ">android-arm</RuntimeIdentifier>
     <RuntimeIdentifier Condition=" '$(RuntimeIdentifier)' == '' and '$(GodotAndroidArchitecture)' == 'x86_64' ">android-x64</RuntimeIdentifier>
     <RuntimeIdentifier Condition=" '$(RuntimeIdentifier)' == '' and '$(GodotAndroidArchitecture)' == 'x86_32' ">android-x86</RuntimeIdentifier>
+
+    <!-- Make the Android target framework explicit when a project does not set it. -->
+    <TargetFramework Condition=" '$(TargetFramework)' == '' ">net10.0-android</TargetFramework>
   </PropertyGroup>
 </Project>
