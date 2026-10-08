@@ -133,7 +133,7 @@ jobs:
           ./modules/mono/build_scripts/build_assemblies.py --godot-output-dir=./bin --godot-platform=android --android-architecture=arm64 --werror
 
       - name: Generate Godot Mono templates
-        if: matrix.build-mono
+        if: matrix.build-mono && matrix.target == 'template_debug'
         run: |
           cd platform/android/java
           ./gradlew generateGodotMonoTemplates
@@ -147,12 +147,6 @@ jobs:
           ./gradlew generateGodotTemplates
           cd ../../..
           ls -l bin/
-
-      - name: Generate Godot C# assemblies
-        if: matrix.build-mono
-        run: |
-          dotnet --info
-          ./modules/mono/build_scripts/build_assemblies.py --godot-output-dir=./bin --godot-platform=android --android-architecture=arm64 --werror
 
       - name: Generate Godot editor
         if: matrix.target == 'editor'
@@ -169,6 +163,8 @@ jobs:
           mv bin/android_editor_builds/*-horizonos-* horizonos
           mkdir picoos
           mv bin/android_editor_builds/*-picoos-* picoos
+        if: matrix.target == 'editor'
+        run: |
 
       - name: Upload artifact
         uses: ./.github/actions/upload-artifact
