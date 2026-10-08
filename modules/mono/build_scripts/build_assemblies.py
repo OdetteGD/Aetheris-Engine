@@ -388,7 +388,15 @@ def build_all(
 
     # Godot API
     exit_code = build_godot_api(
-        msbuild_tool, module_dir, output_dir, push_nupkgs_local, precision, no_deprecated, werror
+        msbuild_tool,
+        module_dir,
+        output_dir,
+        push_nupkgs_local,
+        precision,
+        no_deprecated,
+        werror,
+        godot_platform,
+        android_architecture,
     )
     if exit_code != 0:
         return exit_code
