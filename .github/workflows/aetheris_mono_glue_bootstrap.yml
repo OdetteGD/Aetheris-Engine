@@ -39,6 +39,19 @@ jobs:
           test -s modules/mono/glue/GodotSharp/GodotSharp/Generated/GeneratedIncludes.props
           test -s modules/mono/glue/GodotSharp/GodotSharpEditor/Generated/GeneratedIncludes.props
 
+      - name: Save host generator build cache
+        if: steps.glue-cache.outputs.cache-hit != 'true'
+        uses: ./.github/actions/godot-cache-save
+        with:
+          cache-name: android-editor-mono
+        continue-on-error: true
+
+      - name: Restore Godot build cache
+        uses: ./.github/actions/godot-cache-restore
+        with:
+          cache-name: android-editor-mono
+        continue-on-error: true
+
       - name: Setup Python and SCons
         if: steps.glue-cache.outputs.cache-hit != 'true'
         uses: ./.github/actions/godot-deps
