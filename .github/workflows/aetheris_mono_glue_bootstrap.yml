@@ -29,7 +29,7 @@ jobs:
           path: |
             modules/mono/glue/GodotSharp/GodotSharp/Generated
             modules/mono/glue/GodotSharp/GodotSharpEditor/Generated
-          key: aetheris-mono-glue-${{ hashFiles('core/**/*.h', 'core/**/*.cpp', 'modules/**/*.h', 'modules/**/*.cpp', 'modules/**/*.hpp', 'modules/**/*.inc') }}
+          key: aetheris-mono-glue-${{ hashFiles('core/**/*.h', 'core/**/*.cpp', 'modules/**/*.h', 'modules/**/*.cpp', 'modules/**/*.hpp', 'modules/**/*.inc', '!modules/mono/glue/**') }}
 
       - name: Stop if glue cache already exists
         if: steps.glue-cache.outputs.cache-hit == 'true'
@@ -102,4 +102,4 @@ jobs:
           path: |
             modules/mono/glue/GodotSharp/GodotSharp/Generated
             modules/mono/glue/GodotSharp/GodotSharpEditor/Generated
-          key: aetheris-mono-glue-${{ hashFiles('core/**/*.h', 'core/**/*.cpp', 'modules/**/*.h', 'modules/**/*.cpp', 'modules/**/*.hpp', 'modules/**/*.inc') }}
+          key: aetheris-mono-glue-${{ hashFiles('core/**/*.h', 'core/**/*.cpp', 'modules/**/*.h', 'modules/**/*.cpp', 'modules/**/*.hpp', 'modules/**/*.inc', '!modules/mono/glue/**') }}
