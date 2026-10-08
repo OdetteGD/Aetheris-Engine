@@ -1,6 +1,10 @@
 <Project>
   <Import Project="$(MSBuildThisFileDirectory)\SdkPackageVersions.props" />
 
+  <!-- Platform-specific Godot C# properties. -->
+  <Import Project="$(MSBuildThisFileDirectory)\Android.props" Condition=" '$(GodotTargetPlatform)' == 'android' " />
+  <Import Project="$(MSBuildThisFileDirectory)\iOS.props" Condition=" '$(GodotTargetPlatform)' == 'ios' " />
+
   <PropertyGroup>
     <UsingGodotNETSdk>true</UsingGodotNETSdk>
 
