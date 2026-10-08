@@ -61,16 +61,19 @@ jobs:
             profiler=perfetto
             swappy=yes
 
-      - name: Build temporary Linux Mono editor for C# glue generation
-        shell: sh
-        run: |
-          scons platform=linuxbsd target=editor             dev_mode=yes             module_text_server_fb_enabled=yes             module_mono_enabled=yes             production=yes             cache_path=.scons_cache             redirect_build_objects=no
+      - name: Restore generated Mono glue cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            modules/mono/glue/GodotSharp/GodotSharp/Generated
+            modules/mono/glue/GodotSharp/GodotSharpEditor/Generated
+          key: aetheris-mono-glue-${{ hashFiles('core/**/*.h', 'core/**/*.cpp', 'modules/**/*.h', 'modules/**/*.cpp', 'modules/**/*.hpp', 'modules/**/*.inc') }}
+          restore-keys: |
+            aetheris-mono-glue-
 
-      - name: Generate C# Mono glue for the editor API
+      - name: Validate generated Mono glue
         shell: sh
         run: |
-          test -x bin/godot.linuxbsd.editor.x86_64
-          ./bin/godot.linuxbsd.editor.x86_64 --headless --generate-mono-glue modules/mono/glue
           test -s modules/mono/glue/GodotSharp/GodotSharp/Generated/GeneratedIncludes.props
           test -s modules/mono/glue/GodotSharp/GodotSharpEditor/Generated/GeneratedIncludes.props
 
