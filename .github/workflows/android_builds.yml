@@ -163,9 +163,6 @@ jobs:
           mv bin/android_editor_builds/*-horizonos-* horizonos
           mkdir picoos
           mv bin/android_editor_builds/*-picoos-* picoos
-        if: matrix.target == 'editor'
-        run: |
-
       - name: Upload artifact
         uses: ./.github/actions/upload-artifact
         with:
