@@ -126,6 +126,12 @@ jobs:
           cache-name: ${{ matrix.cache-name }}
         continue-on-error: true
 
+      - name: Install .NET for Android workload
+        if: matrix.build-mono
+        run: |
+          dotnet workload install android --skip-manifest-update
+          dotnet workload list
+
       - name: Build .NET C# solutions
         if: matrix.build-mono
         run: |
