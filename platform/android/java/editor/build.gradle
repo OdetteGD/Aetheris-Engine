@@ -210,6 +210,14 @@ android {
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar", "*.aar"])
 
+    // .NET/Mono Android editor support.
+    // The native Mono/SGen runtime is provided by the Mono-enabled Godot binary;
+    // this Android-side jar supplies the managed/native crypto bridge used by .NET.
+    String monoCryptoJar = '../../../../modules/mono/thirdparty/libSystem.Security.Cryptography.Native.Android.jar'
+    if (file(monoCryptoJar).exists()) {
+        implementation files(monoCryptoJar)
+    }
+
     implementation "androidx.fragment:fragment:$versions.fragmentVersion"
     implementation project(":lib")
 
