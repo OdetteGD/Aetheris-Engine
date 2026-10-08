@@ -188,7 +188,21 @@ def run_msbuild(tools: ToolsLocation, sln: str, chdir_to: str, msbuild_args: lis
     return subprocess.call(args, env=msbuild_env, cwd=chdir_to)
 
 
-def build_godot_api(msbuild_tool, module_dir, output_dir, push_nupkgs_local, precision, no_deprecated, werror):
+def android_msbuild_properties(godot_platform, android_architecture):
+    if godot_platform != "android":
+        return []
+
+    # C# compilation remains Roslyn/csc through dotnet MSBuild. These properties
+    # make the Android target explicit without converting the platform-neutral
+    # GodotSharp API projects to an Android-only target framework.
+    return [
+        "/p:GodotTargetPlatform=android",
+        "/p:GodotAndroidArchitecture=" + android_architecture,
+        "/p:UseMonoRuntime=true",
+    ]
+
+
+def build_godot_api(msbuild_tool, module_dir, output_dir, push_nupkgs_local, precision, no_deprecated, werror, godot_platform, android_architecture):
     target_filenames = [
         "GodotSharp.dll",
         "GodotSharp.pdb",
@@ -215,6 +229,7 @@ def build_godot_api(msbuild_tool, module_dir, output_dir, push_nupkgs_local, pre
             args += ["/p:GodotNoDeprecated=true"]
         if werror:
             args += ["/p:TreatWarningsAsErrors=true"]
+        args += android_msbuild_properties(godot_platform, android_architecture)
 
         sln = os.path.join(module_dir, "glue/GodotSharp/GodotSharp.sln")
         exit_code = run_msbuild(msbuild_tool, sln=sln, chdir_to=module_dir, msbuild_args=args)
@@ -366,7 +381,7 @@ def generate_sdk_package_versions():
 
 
 def build_all(
-    msbuild_tool, module_dir, output_dir, godot_platform, dev_debug, push_nupkgs_local, precision, no_deprecated, werror
+    msbuild_tool, module_dir, output_dir, godot_platform, android_architecture, dev_debug, push_nupkgs_local, precision, no_deprecated, werror
 ):
     # Generate SdkPackageVersions.props and VersionDocsUrl constant
     generate_sdk_package_versions()
@@ -383,6 +398,7 @@ def build_all(
     args = ["/restore", "/t:Build", "/p:Configuration=" + ("Debug" if dev_debug else "Release")] + (
         ["/p:GodotPlatform=" + godot_platform] if godot_platform else []
     )
+    args += android_msbuild_properties(godot_platform, android_architecture)
     if push_nupkgs_local:
         args += ["/p:ClearNuGetLocalCache=true", "/p:PushNuGetToLocalSource=" + push_nupkgs_local]
     if precision == "double":
@@ -393,6 +409,7 @@ def build_all(
 
     # Godot.NET.Sdk
     args = ["/restore", "/t:Build", "/p:Configuration=Release"]
+    args += android_msbuild_properties(godot_platform, android_architecture)
     if push_nupkgs_local:
         args += ["/p:ClearNuGetLocalCache=true", "/p:PushNuGetToLocalSource=" + push_nupkgs_local]
     if precision == "double":
@@ -420,6 +437,13 @@ def main():
         help="Build GodotTools and Godot.NET.Sdk with 'Configuration=Debug'",
     )
     parser.add_argument("--godot-platform", type=str, default="")
+    parser.add_argument(
+        "--android-architecture",
+        type=str,
+        default="arm64",
+        choices=["arm64", "arm32", "x86_64", "x86_32"],
+        help="Android C# architecture used for the Godot MSBuild properties.",
+    )
     parser.add_argument("--mono-prefix", type=str, default="")
     parser.add_argument("--push-nupkgs-local", type=str, default="")
     parser.add_argument(
@@ -453,6 +477,7 @@ def main():
         module_dir,
         output_dir,
         args.godot_platform,
+        args.android_architecture,
         args.dev_debug,
         push_nupkgs_local,
         args.precision,
