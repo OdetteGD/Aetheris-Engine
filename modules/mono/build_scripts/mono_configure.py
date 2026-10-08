@@ -1,5 +1,5 @@
 def is_desktop(platform):
-    return platform in ["windows", "macos", "linuxbsd"]
+    return platform in ["windows", "macos", "linuxbsd", "android"]
 
 
 def is_unix_like(platform):
@@ -11,7 +11,7 @@ def module_supports_tools_on(platform):
 
 
 def configure(env, env_mono):
-    # is_android = env["platform"] == "android"
+    is_android = env["platform"] == "android"
     # is_web = env["platform"] == "web"
     # is_ios = env["platform"] == "ios"
     # is_ios_sim = is_ios and env["arch"] in ["x86_32", "x86_64"]
