@@ -27,7 +27,6 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.100
-          cache: true
 
       - name: Restore Godot build cache
         uses: ./.github/actions/godot-cache-restore
