@@ -124,16 +124,11 @@ jobs:
           cache-name: ${{ matrix.cache-name }}
         continue-on-error: true
 
-      - name: Generate C# glue
-        if: matrix.build-mono
-        run: |
-          ./bin/godot.android.template_debug.arm64.mono --headless --generate-mono-glue ./modules/mono/glue
-
       - name: Build .NET C# solutions
         if: matrix.build-mono
         run: |
           dotnet --info
-          ./modules/mono/build_scripts/build_assemblies.py --godot-output-dir=./bin --godot-platform=android --werror
+          ./modules/mono/build_scripts/build_assemblies.py --godot-output-dir=./bin --godot-platform=android --android-architecture=arm64 --werror
 
       - name: Generate Godot Mono templates
         if: matrix.build-mono
