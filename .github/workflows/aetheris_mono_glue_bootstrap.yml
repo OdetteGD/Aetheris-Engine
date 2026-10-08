@@ -59,12 +59,32 @@ jobs:
             cache_path=.scons_cache \
             redirect_build_objects=no
 
+      - name: Locate host Mono editor generator
+        if: steps.glue-cache.outputs.cache-hit != 'true'
+        shell: sh
+        run: |
+          set -eu
+          echo "Built Linux editor binaries:"
+          find bin -maxdepth 1 -type f -name 'godot.linuxbsd.editor.x86_64*' -print | sort
+          GENERATOR="$(find bin -maxdepth 1 -type f -name 'godot.linuxbsd.editor.x86_64*' -perm -111 -print | grep '\.mono$' | head -n 1 || true)"
+          if [ -z "$GENERATOR" ]; then
+            GENERATOR="$(find bin -maxdepth 1 -type f -name 'godot.linuxbsd.editor.x86_64*' -perm -111 -print | head -n 1 || true)"
+          fi
+          if [ -z "$GENERATOR" ]; then
+            echo "ERROR: no executable Linux Mono/editor generator was produced."
+            exit 1
+          fi
+          echo "AETHERIS_MONO_GLUE_GENERATOR=$GENERATOR" >> "$GITHUB_ENV"
+          echo "Using generator: $GENERATOR"
+
       - name: Generate platform-neutral C# API glue
         if: steps.glue-cache.outputs.cache-hit != 'true'
         shell: sh
         run: |
-          test -x bin/godot.linuxbsd.editor.x86_64
-          ./bin/godot.linuxbsd.editor.x86_64 --headless --generate-mono-glue modules/mono/glue
+          set -eu
+          test -n "${AETHERIS_MONO_GLUE_GENERATOR}"
+          test -x "${AETHERIS_MONO_GLUE_GENERATOR}"
+          "${AETHERIS_MONO_GLUE_GENERATOR}" --headless --generate-mono-glue modules/mono/glue
           test -s modules/mono/glue/GodotSharp/GodotSharp/Generated/GeneratedIncludes.props
           test -s modules/mono/glue/GodotSharp/GodotSharpEditor/Generated/GeneratedIncludes.props
 
