@@ -9,6 +9,7 @@ on:
 
 jobs:
   android-editor-csharp:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     name: Aetheris C# Android Editor (arm64)
     runs-on: ubuntu-26.04
     timeout-minutes: 60
@@ -70,8 +71,7 @@ jobs:
             modules/mono/glue/GodotSharp/GodotSharp/Generated
             modules/mono/glue/GodotSharp/GodotSharpEditor/Generated
           key: aetheris-mono-glue-${{ hashFiles('core/**/*.h', 'core/**/*.cpp', 'modules/**/*.h', 'modules/**/*.cpp', 'modules/**/*.hpp', 'modules/**/*.inc') }}
-          restore-keys: |
-            aetheris-mono-glue-
+          fail-on-cache-miss: true
 
       - name: Validate generated Mono glue
         shell: sh
